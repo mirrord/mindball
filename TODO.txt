@@ -1,0 +1,5 @@
+consolidate code: mitigate code repetition
+test code on newest Pi
+move to Python3 compatibility
+make box for motor, etc.
+put box designs in repo
