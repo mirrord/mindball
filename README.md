@@ -1,7 +1,7 @@
 # mindball
 a game of mental fortitude for the Raspberry Pi
 
-1. get the raspberry pi, and install raspian.
+1. get the raspberry pi and install raspian.
 
 2. install:
 python_games (http://www.pygame.org/news.html)
