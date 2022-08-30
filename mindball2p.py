@@ -2,12 +2,12 @@
 
 import platform
 import os, sys, time
-from pymindwave import headset
+from mindwave import Headset
 
 
 def start_mindball(hs1, hs2):
     while True:
-        a = raw_input("Press ENTER when both players are ready.")
+        a = input("Press ENTER when both players are ready.")
         winner = mindball_loop(hs1, hs2)
         time.sleep(5)
 
@@ -57,11 +57,11 @@ def mindball_loop(hs1, hs2):
     while not winner:
         #get player attention values
         time.sleep(1)
-        att1 = hs1.get('attention')
-        med1 = hs1.get('meditation')
+        att1 = hs1.attention
+        med1 = hs1.meditation
         p1_strength = att1 + med1
-        att2 = hs2.get('attention')
-        med2 = hs2.get('meditation')
+        att2 = hs2.attention
+        med2 = hs2.meditation
         p2_strength = att2 + med2
 
         #make sure we're getting data before continuing
@@ -104,38 +104,39 @@ def mindball_loop(hs1, hs2):
 
 if __name__ == "__main__":
     #connect headset #1
-    hs1 = headset.Headset('/dev/ttyUSB0')
-    hs2 = headset.Headset('/dev/ttyUSB1')
+    hs1 = Headset('/dev/ttyUSB0')
+    hs2 = Headset('/dev/ttyUSB1')
 
     # wait some time for parser to udpate state so we might be able
     # to reuse last opened connection.
     time.sleep(1)
-    if hs1.get_state() == 'connected':
+    if hs1.status == 'connected':
         hs1.disconnect()
-    if hs2.get_state() == 'connected':
+    if hs2.status == 'connected':
         hs2.disconnect()
 
     print "Player 1, connect your headset."
     state = 'x'
-    while hs1.get_state() != 'connected':
+    while hs1.status != 'connected':
         time.sleep(1)
-        curr_state = hs1.get_state()
+        curr_state = hs1.status
         if not curr_state == state:
             state = curr_state
             print state
-        if (state == 'standby'):
+        if (state == 'standby') or state == None:
             hs1.connect()
+            time.sleep(5)
     print "Player 1 connected!"
 
     print "Player 2, connect your headset."
-    while hs2.get_state() != 'connected':
-        time.sleep(1)
-        curr_state = hs2.get_state()
+    while hs2.status != 'connected':
+        curr_state = hs2.status
         if not curr_state == state:
             state = curr_state
             print state
         if (state == 'standby'):
             hs2.connect()
+            time.sleep(5)
     print "Player 2 connected!"
 
     start_mindball(hs1, hs2)

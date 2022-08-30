@@ -2,17 +2,17 @@
 
 import platform
 import os, sys, time
-from pymindwave import headset
+from mindwave import Headset
 
 
 def start_mindball(hs1):
     dif = 100
     while True:
-        print "difficulty: " + str(dif)
-        a = raw_input("Press ENTER when you are ready.")
+        print("difficulty: " + str(dif))
+        a = input("Press ENTER when you are ready.")
         winner = mindball_loop(hs1, dif)
         time.sleep(5)
-        if winner is 1:
+        if winner == 1:
             dif+=10
         else:
             dif-=10
@@ -62,13 +62,13 @@ def mindball_loop(hs1, difficulty):
     while not winner:
         #get player attention values
         time.sleep(1)
-        att1 = hs1.get('attention')
-        med1 = hs1.get('meditation')
+        att1 = hs1.attention
+        med1 = hs1.meditation
         p1_strength = att1 + med1
 
         #make sure we're getting data before continuing
-        if p1_strength is 0:
-            print "waiting for readings..."
+        if p1_strength == 0:
+            print("waiting for readings...")
             continue
 
         #compare attention values
@@ -88,15 +88,15 @@ def mindball_loop(hs1, difficulty):
 
         #report
         #print str(p1_strength) + (' '*pad) + show_state(game_state, p1_strength, 100) + ' ' + str(difficulty)
-        os.system('clear')
-	print show_state(game_state, p1_strength, 100)
+        #os.system('clear')
+        print(show_state(game_state, p1_strength, 100))
 
         #check for game over
         if game_state[0] > 20:
-            print "Player 1 Wins!"
+            print("Player 1 Wins!")
             winner = 1
         elif game_state[1] > 20:
-            print "Player 2 Wins!"
+            print("Player 2 Wins!")
             winner = 2
 
     return winner
@@ -104,33 +104,38 @@ def mindball_loop(hs1, difficulty):
 
 if __name__ == "__main__":
     #connect headset #1
-    hs = headset.Headset('/dev/ttyUSB0')
+    hs = Headset('/dev/ttyUSB1')
 
     # wait some time for parser to udpate state so we might be able
     # to reuse last opened connection.
     time.sleep(1)
-    if hs.get_state() == 'connected':
+    print(f"status: {hs.status}")
+    if hs.status == 'connected':
         hs.disconnect()
-
-    state = 'x'
-    while hs.get_state() != 'connected':
         time.sleep(1)
-        curr_state = hs.get_state()
+
+    print("connecting...")
+    hs.connect()
+    state = 'x'
+    while hs.status != 'connected':
+        time.sleep(5)
+        curr_state = hs.status
         if not curr_state == state:
             state = curr_state
-            print state
-        if state == 'standby':
+            print(state)
+        if state == 'standby' or state == None:
+            print("connecting...")
             hs.connect()
 
-    print 'now connected!'
+    print('now connected!')
 
     start_mindball(hs)
     #mindball_loop(hs)
 
-    print 'disconnecting...'
+    print('disconnecting...')
     hs.disconnect()
     hs.destroy()
-    print 'done'
+    print('done')
     sys.exit(0)
     
 
