@@ -3,9 +3,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import signal
-import platform
-import os, sys, time
-from mindwave import Headset
+import sys, time
+from mindwave import Headset, get_headset_dongles
 
 gamefig = plt.figure()
 gameplot = gamefig.add_subplot(1, 1, 1)
@@ -42,8 +41,12 @@ def show_state(i):
 
 if __name__ == "__main__":
     # connect headset #1
-    port = sys.argv[1]
-    headsets.append(Headset(f"COM{port}"))
+    ports = get_headset_dongles()
+    if not ports:
+        print(
+            "ERROR: Could not find MindWave RF adapter. Please make sure your adapter is plugged in and a red or blue light is on."
+        )
+    headsets.append(Headset(ports[0]))
 
     # wait some time for parser to udpate state so we might be able
     # to reuse last opened connection.

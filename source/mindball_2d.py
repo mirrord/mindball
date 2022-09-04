@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import signal
 import sys, time
-from mindwave import Headset
+from mindwave import Headset, get_headset_dongles
+
 
 gamefig = plt.figure()
 gameplot = gamefig.add_subplot(1, 1, 1)
@@ -29,14 +30,14 @@ def check_win():
         and ball_location[1] > GOALS[0][1][0]
         and ball_location[1] < GOALS[0][1][1]
     ):
-        return 1
+        return 2
     if (
         ball_location[0] > GOALS[1][0][0]
         and ball_location[0] < GOALS[1][0][1]
         and ball_location[1] > GOALS[1][1][0]
         and ball_location[1] < GOALS[1][1][1]
     ):
-        return 2
+        return 1
     return 0
 
 
@@ -51,16 +52,14 @@ def show_state(i):
 
         p1a = headsets[0].attention
         p1m = headsets[0].meditation
-        p2a = headsets[1].attention
-        p2m = headsets[1].meditation
         gameplot.clear()
 
         plt.xticks(rotation=45, ha="right")
         plt.subplots_adjust(bottom=0.30)
         plt.title("MINDBALL")
 
-        ball_location[0] += int((p1a - p2a) / 50 * INTERVAL)
-        ball_location[1] += int((p1m - p2m) / 100 * INTERVAL)
+        ball_location[0] += int((p1a - 50) / 50 * INTERVAL)
+        ball_location[1] += int((p1m - 50) / 100 * INTERVAL)
 
         ball_location = [
             min(max(ball_location[0], 10), 650),
@@ -80,20 +79,22 @@ def onClick(event):
 
 
 if __name__ == "__main__":
-    port1, port2 = sys.argv[1], sys.argv[2]
-    # connect headsets
-    headsets.append(Headset(f"COM{port1}"))
-    headsets.append(Headset(f"COM{port2}"))
+    # connect headset #1
+    ports = get_headset_dongles()
+    if not ports:
+        print(
+            "ERROR: Could not find MindWave RF adapter. Please make sure your adapter is plugged in and a red or blue light is on."
+        )
+    headsets.append(Headset(ports[0]))
 
+    # wait some time for parser to udpate state so we might be able
+    # to reuse last opened connection.
     time.sleep(1)
     if headsets[0].status == "connected":
         headsets[0].disconnect()
         time.sleep(1)
-    if headsets[1].status == "connected":
-        headsets[1].disconnect()
-        time.sleep(1)
 
-    print("Player 1, connect your headset.")
+    print("connecting...")
     headsets[0].connect()
     state = "x"
     while headsets[0].status != "connected":
@@ -103,20 +104,11 @@ if __name__ == "__main__":
             state = curr_state
         if state == "standby" or state is None:
             headsets[0].connect()
-    print("Player 1 connected! Player 2, connect your headset.")
-    headsets[1].connect()
-    state = "x"
-    while headsets[1].status != "connected":
-        time.sleep(5)
-        curr_state = headsets[1].status
-        if not curr_state == state:
-            state = curr_state
-        if state == "standby" or state is None:
-            headsets[1].connect()
 
-    print("Player 2 connected!")
-    gamefig.canvas.mpl_connect("button_press_event", onClick)
+    print("now connected!")
+
     signal.signal(signal.SIGINT, signal.default_int_handler)
+    gamefig.canvas.mpl_connect("button_press_event", onClick)
     try:
         ANI = animation.FuncAnimation(
             gamefig,
@@ -129,6 +121,5 @@ if __name__ == "__main__":
 
     print("\ndisconnecting...")
     headsets[0].disconnect()
-    headsets[1].disconnect()
     print("done")
     sys.exit(0)

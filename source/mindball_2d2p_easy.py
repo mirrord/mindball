@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import signal
 import sys, time
-from mindwave import Headset
+from mindwave import Headset, get_headset_dongles
 
 gamefig = plt.figure()
 gameplot = gamefig.add_subplot(1, 1, 1)
@@ -29,14 +29,14 @@ def check_win():
         and ball_location[1] > GOALS[0][1][0]
         and ball_location[1] < GOALS[0][1][1]
     ):
-        return 1
+        return 2
     if (
         ball_location[0] > GOALS[1][0][0]
         and ball_location[0] < GOALS[1][0][1]
         and ball_location[1] > GOALS[1][1][0]
         and ball_location[1] < GOALS[1][1][1]
     ):
-        return 2
+        return 1
     return 0
 
 
@@ -77,10 +77,14 @@ def onClick(event):
 
 
 if __name__ == "__main__":
-    port1, port2 = sys.argv[1], sys.argv[2]
     # connect headsets
-    headsets.append(Headset(f"COM{port1}"))
-    headsets.append(Headset(f"COM{port2}"))
+    ports = get_headset_dongles()
+    if not ports:
+        print(
+            "ERROR: Could not find MindWave RF adapter. Please make sure your adapter is plugged in and a red or blue light is on."
+        )
+    headsets.append(Headset(ports[0]))
+    headsets.append(Headset(ports[1]))
 
     time.sleep(1)
     if headsets[0].status == "connected":
